@@ -1,1 +1,26 @@
+# Sensible Daten
 .env
+cloudflare-worker/wrangler.toml
+
+# Node.js
+node_modules/
+cloudflare-worker/node_modules/
+cloudflare-worker/.wrangler/
+cloudflare-worker/package-lock.json
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Build- und Ausgabeverzeichnisse
+dist/
+out/
+
+# Daten und generierte Dateien
+backend/
+
+# Testskripte (optional, falls temporär)
+cloudflare-worker/src/test-strava.ts

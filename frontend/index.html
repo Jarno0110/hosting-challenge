@@ -3,7 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello World</title>
+    <title>Leaderboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Hello World</h
+<body class="bg-gray-100 min-h-screen flex flex-col items-center py-8">
+    <h1 class="text-3xl font-bold mb-6 text-blue-700">Leaderboard</h1>
+    <button id="reload" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">Aktualisieren & Neu laden</button>
+    <div class="overflow-x-auto w-full max-w-2xl">
+        <table id="leaderboard" class="min-w-full bg-white rounded shadow text-center">
+            <thead class="bg-blue-100">
+                <tr>
+                    <th class="py-2 px-4">Name</th>
+                    <th class="py-2 px-4">Bewegungszeit</th>
+                    <th class="py-2 px-4">Aktivitäten</th>
+                    <th class="py-2 px-4">Distanz (km)</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <script>
+    const users = ["jarno", "haval", "jean"];
+    async function updateAllUsers() {
+        for (const user of users) {
+            try {
+                await fetch(`https://hosting-challenge-worker.jarno-f.workers.dev/api/update?user=${user}`, { method: 'POST' });
+            } catch (e) {
+                // Fehler ignorieren, damit andere User trotzdem geladen werden
+            }
+        }
+    }
+    async function loadLeaderboard() {
+        const res = await fetch('https://hosting-challenge-worker.jarno-f.workers.dev/api/leaderboard');
+        const data = await res.json();
+        const tbody = document.querySelector('#leaderboard tbody');
+        tbody.innerHTML = '';
+        data.forEach(row => {
+            tbody.innerHTML += `<tr class='hover:bg-blue-50'>
+                <td class='py-2 px-4 border-b'>${row.name}</td>
+                <td class='py-2 px-4 border-b'>${row.time}</td>
+                <td class='py-2 px-4 border-b'>${row.count}</td>
+                <td class='py-2 px-4 border-b'>${row.distance}</td>
+            </tr>`;
+        });
+    }
+    document.getElementById('reload').onclick = async function() {
+        const btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Aktualisiere...';
+        await updateAllUsers();
+        await loadLeaderboard();
+        btn.disabled = false;
+        btn.textContent = 'Aktualisieren & Neu laden';
+    };
+    // Beim ersten Laden direkt alles aktualisieren und anzeigen
+    document.getElementById('reload').click();
+    </script>
+</body>
+</html>

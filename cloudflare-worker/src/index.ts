@@ -1,4 +1,4 @@
-import { saveActivitiesToKV, loadActivitiesFromKV, loadAllActivities } from "./api/kv";
+import { saveActivitiesToKV, loadActivitiesFromKV, loadAllActivities, saveLeaderboardToKV, loadLeaderboardFromKV } from "./api/kv";
 import { aggregateActivities } from "./api/leaderboard";
 import { fetchAthleteActivities, getAthleteAccessToken } from "./api/strava";
 
@@ -15,12 +15,20 @@ export default {
     const url = new URL(request.url);
     // Leaderboard-API
     if (url.pathname === "/api/leaderboard") {
-      const activitiesByUser = await loadAllActivities(env, users);
-      const leaderboard = aggregateActivities(activitiesByUser);
-    const sorted = Object.entries(leaderboard)
-      .map(([name, stats]) => ({ name, ...(stats as { moving_time: number }) }))
-      .filter(entry => typeof entry.moving_time === "number")
-      .sort((a, b) => b.moving_time - a.moving_time);
+      // Erst aus KV laden, dann ggf. live aggregieren und speichern
+      let sorted;
+      const cached = await loadLeaderboardFromKV(env);
+      if (cached) {
+        sorted = cached;
+      } else {
+        const activitiesByUser = await loadAllActivities(env, users);
+        const leaderboard = aggregateActivities(activitiesByUser);
+        sorted = Object.entries(leaderboard)
+          .map(([name, stats]) => ({ name, ...(stats as { moving_time: number }) }))
+          .filter(entry => typeof entry.moving_time === "number")
+          .sort((a, b) => b.moving_time - a.moving_time);
+        await saveLeaderboardToKV(env, sorted);
+      }
       return new Response(JSON.stringify(sorted), {
         headers: {
           "Content-Type": "application/json",
@@ -45,6 +53,14 @@ export default {
       const accessToken = await getAthleteAccessToken(clientId, clientSecret, refreshToken);
       const activities = await fetchAthleteActivities(accessToken, "12-06-2025", "12-05-2025");
       await saveActivitiesToKV(env, user, activities);
+      // Nach dem Speichern: Leaderboard neu aggregieren und speichern
+      const activitiesByUser = await loadAllActivities(env, users);
+      const leaderboard = aggregateActivities(activitiesByUser);
+      const sorted = Object.entries(leaderboard)
+        .map(([name, stats]) => ({ name, ...(stats as { moving_time: number }) }))
+        .filter(entry => typeof entry.moving_time === "number")
+        .sort((a, b) => b.moving_time - a.moving_time);
+      await saveLeaderboardToKV(env, sorted);
       return new Response(JSON.stringify({ ok: true, count: activities.length }), {
         headers: {
           "Content-Type": "application/json",

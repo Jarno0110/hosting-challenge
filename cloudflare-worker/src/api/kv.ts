@@ -19,3 +19,14 @@ export async function loadAllActivities(env: any, users: string[]): Promise<Reco
   }
   return result;
 }
+
+export async function saveLeaderboardToKV(env: any, leaderboard: any): Promise<void> {
+  if (!env.ACTIVITIES_KV) throw new Error("KV Namespace ACTIVITIES_KV nicht gebunden");
+  await env.ACTIVITIES_KV.put("leaderboard", JSON.stringify(leaderboard));
+}
+
+export async function loadLeaderboardFromKV(env: any): Promise<any | null> {
+  if (!env.ACTIVITIES_KV) throw new Error("KV Namespace ACTIVITIES_KV nicht gebunden");
+  const data = await env.ACTIVITIES_KV.get("leaderboard");
+  return data ? JSON.parse(data) : null;
+}

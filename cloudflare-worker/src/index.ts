@@ -8,7 +8,7 @@ export interface Env {
   [key: string]: any;
 }
 
-const users = ["jarno", "haval", "jean"];
+const users = ["jarno", "haval", "jean", "maria"];
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {

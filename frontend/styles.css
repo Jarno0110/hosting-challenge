@@ -1,0 +1,26 @@
+/* styles.css */
+
+html, body {
+    overflow-x: hidden;
+}
+
+@media (min-width: 640px) {
+  #podium {
+    align-items: flex-end;
+  }
+}
+
+.podium-card {
+  transition: transform 0.2s;
+}
+.podium-card:hover {
+  transform: scale(1.05);
+}
+
+.reverse-spin {
+    animation-direction: reverse !important;
+}
+
+.host-color {
+    color: rgb(16, 199, 16);
+}

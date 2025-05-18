@@ -24,3 +24,4 @@ backend/
 
 # Testskripte (optional, falls temporär)
 cloudflare-worker/src/test-strava.ts
+.vscode/

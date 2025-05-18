@@ -46,7 +46,7 @@ export default {
       // Strava-Credentials dynamisch aus env
       const clientId = env[`jarno_id`];
       const clientSecret = env["STRAVA_CLIENT_SECRET"];
-      const refreshToken = env[`${user}_refresh_token`];
+      const refreshToken = env[`${user.toLowerCase()}_refresh_token`];
       if (!clientId || !clientSecret || !refreshToken) {
         return new Response("Missing Strava credentials", { status: 500 });
       }
@@ -57,7 +57,10 @@ export default {
       const activitiesByUser = await loadAllActivities(env, users);
       const leaderboard = aggregateActivities(activitiesByUser);
       const sorted = Object.entries(leaderboard)
-        .map(([name, stats]) => ({ name, ...(stats as { moving_time: number }) }))
+        .map(([name, stats]) => ({
+          name: name.charAt(0).toUpperCase() + name.slice(1),
+          ...(stats as { moving_time: number })
+        }))
         .filter(entry => typeof entry.moving_time === "number")
         .sort((a, b) => b.moving_time - a.moving_time);
       await saveLeaderboardToKV(env, sorted);

@@ -1,75 +1,135 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Leaderboard</title>
-    <!-- Standard-Browser (Chrome, Firefox, Edge, etc.) -->
-    <link rel="icon" href="/public/favicon.ico" type="image/x-icon">
-
-    <!-- PNG-Fallback für Browser, die .ico nicht mögen -->
-    <link rel="icon" href="/public/favicon-32x32.png" type="image/png">
-
-    <!-- Apple iOS (Home-Screen Shortcut) -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-
-    <!-- Android/Windows Tiles (optional, für PWA/manifest) -->
-    <link rel="manifest" href="/site.webmanifest">
+    <link rel="icon" href="/public/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=sync" />
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center py-8">
-    <h1 class="text-3xl font-bold mb-6 text-blue-700">Leaderboard</h1>
-    <button id="reload" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">Aktualisieren & Neu laden</button>
-    <div class="overflow-x-auto w-full max-w-2xl">
-        <table id="leaderboard" class="min-w-full bg-white rounded shadow text-center">
-            <thead class="bg-blue-100">
-                <tr>
-                    <th class="py-2 px-4">Name</th>
-                    <th class="py-2 px-4">Bewegungszeit</th>
-                    <th class="py-2 px-4">Aktivitäten</th>
-                    <th class="py-2 px-4">Distanz (km)</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center py-8">
+
+    <div class="mb-10 flex flex-row w-full justify-center items-center">
+        <h1 class="text-3xl md:text-4xl font-bold text-white">Leaderboard</h1>
+        <button id="reload"
+            class="ml-4 px-2 py-2 bg-sky-800 text-white rounded-2xl transition flex items-center justify-center"
+            aria-label="Aktualisieren">
+            <span class="material-symbols-outlined">sync</span>
+        </button>
     </div>
+
+
+    <!-- Podium Top 3 -->
+    <div id="podium" class="flex flex-row items-end justify-between gap-4 mb-6 w-full max-w-lg px-5"></div>
+    <!-- Dynamisch mit JS befüllt -->
+    </div>
+
+    <!-- Plätze ab Rang 4 -->
+    <div class="w-full max-w-2xl px-5">
+        <h2 class="text-xl font-semibold mb-4 text-white">Weitere Platzierungen</h2>
+        <div id="others" class="space-y-2">
+            <!-- Dynamisch mit JS befüllt -->
+        </div>
+    </div>
+
     <script>
-    const users = ["jarno", "haval", "jean", "maria"];
-    async function updateAllUsers() {
-        for (const user of users) {
-            try {
-                await fetch(`https://hosting-challenge-worker.jarno-f.workers.dev/api/update?user=${user}`, { method: 'POST' });
-            } catch (e) {
-                // Fehler ignorieren, damit andere User trotzdem geladen werden
+        async function updateAllUsers() {
+            const users = ["Jarno", "Haval", "Jean", "Maria"];
+            for (const user of users) {
+                try {
+                    await fetch(`https://hosting-challenge-worker.jarno-f.workers.dev/api/update?user=${user.toLowerCase()}`, {
+                        method: 'POST'
+                    });
+                } catch (e) {
+                    console.error(`Fehler beim Aktualisieren von ${user}`);
+                }
             }
         }
-    }
-    async function loadLeaderboard() {
-        const res = await fetch('https://hosting-challenge-worker.jarno-f.workers.dev/api/leaderboard');
-        const data = await res.json();
-        const tbody = document.querySelector('#leaderboard tbody');
-        tbody.innerHTML = '';
-        data.forEach(row => {
-            tbody.innerHTML += `<tr class='hover:bg-blue-50'>
-                <td class='py-2 px-4 border-b'>${row.name}</td>
-                <td class='py-2 px-4 border-b'>${row.time}</td>
-                <td class='py-2 px-4 border-b'>${row.count}</td>
-                <td class='py-2 px-4 border-b'>${row.distance}</td>
-            </tr>`;
-        });
-    }
-    document.getElementById('reload').onclick = async function() {
-        const btn = this;
-        btn.disabled = true;
-        btn.textContent = 'Aktualisiere...';
-        await updateAllUsers();
-        await loadLeaderboard();
-        btn.disabled = false;
-        btn.textContent = 'Aktualisieren & Neu laden';
-    };
-    // Beim ersten Laden direkt das aktuelle Leaderboard anzeigen
-    loadLeaderboard();
-    document.getElementById('reload').click();
+
+        function formatDistance(distance) {
+            return distance.toFixed(2).replace('.', ',') + ' km';
+        }
+
+        async function loadLeaderboard() {
+            const res = await fetch('https://hosting-challenge-worker.jarno-f.workers.dev/api/leaderboard');
+            let data = await res.json();
+
+            // Sortieren nach moving_time (absteigend)
+            data.sort((a, b) => b.moving_time - a.moving_time);
+
+            // Podest (Top 3)
+            const podium = document.getElementById('podium');
+            podium.innerHTML = '';
+            const podiumClasses = ['order-2 h-[145px]', 'order-1 h-[125px]', 'order-3 h-[110px]'];
+
+            data.slice(0, 3).forEach((user, index) => {
+                const el = document.createElement('div');
+                el.className = `bg-gray-800 rounded-xl w-xs sm:w-32 flex flex-col justify-center items-center ${podiumClasses[index]} relative podium-card`;
+
+                el.innerHTML = `
+                    <div class="absolute top-0 left-0 -translate-x-1/3 -translate-y-1/2 text-black rounded-full px-2 py-2 flex items-center justify-center">
+                        <img src="./public/laurel-wreath-${index + 1}.svg" alt="${index + 1}" class="w-10 h-10" />
+                    </div>
+                    <div class="text-center p-2">
+                        <p class="font-semibold">${user.name}</p>
+                        <p class="text-sm text-gray-300">${user.time}</p>
+                        <p class="text-sm text-gray-300">${user.count} Aktivitäten</p>
+                        <p class="text-sm text-gray-300">${formatDistance(user.distance)}</p>
+                    </div>
+                    `;
+                podium.appendChild(el);
+            });
+
+            // Plätze 4+
+            const others = document.getElementById('others');
+            others.innerHTML = '';
+            data.slice(3).forEach((user, index) => {
+                const rank = index + 4;
+                const isLast = index === data.slice(3).length - 1;
+                const hostLabel = isLast ? ' – Nächster Host' : '';
+                const div = document.createElement('div');
+                div.className = 'bg-gray-800 p-4 rounded-lg flex justify-between items-center';
+                div.innerHTML = `
+                    <div class="flex flex-col">
+                        <div class="flex flex-row gap-2 mb-1">
+                            <img src="./public/laurel-wreath.svg" class="w-6 h-6fill-lime-500"/>
+                            <span class="font-bold text-lime-400">${user.name}${hostLabel}</span>
+                        </div>
+                        <p class="text-sm text-gray-300">${user.time} · ${user.count} Aktivitäten · ${formatDistance(user.distance)}</p>
+                    </div>
+                    `;
+                others.appendChild(div);
+            });
+        }
+
+        document.getElementById('reload').onclick = async function () {
+            const btn = this;
+            const icon = btn.querySelector('.material-symbols-outlined');
+            btn.disabled = true;
+            btn.classList.remove('bg-sky-800')
+            btn.classList.add('bg-gray-500')
+            icon.classList.add('animate-spin', 'reverse-spin');
+            await updateAllUsers();
+            await loadLeaderboard();
+            btn.disabled = false;
+            icon.classList.remove('animate-spin', 'reverse-spin');
+            btn.classList.remove('bg-gray-500')
+            icon.style.transform = '';
+            btn.classList.add('bg-sky-800')
+        };
+
+        // Beim ersten Laden
+        loadLeaderboard();
+        // document.getElementById('reload').click();
     </script>
 </body>
+
 </html>

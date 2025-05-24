@@ -1,4 +1,4 @@
-import { saveActivitiesToKV, loadActivitiesFromKV, loadAllActivities, saveLeaderboardToKV, loadLeaderboardFromKV } from "./api/kv";
+import { saveActivitiesToKV, loadActivitiesFromKV, loadAllActivities, saveLeaderboardToKV, loadLeaderboardFromKV, loadDatesFromKV, saveDatesToKV } from "./api/kv";
 import { aggregateActivities } from "./api/leaderboard";
 import { fetchAthleteActivities, getAthleteAccessToken } from "./api/strava";
 
@@ -51,7 +51,8 @@ export default {
         return new Response("Missing Strava credentials", { status: 500 });
       }
       const accessToken = await getAthleteAccessToken(clientId, clientSecret, refreshToken);
-      const activities = await fetchAthleteActivities(accessToken, "12-06-2025", "12-05-2025");
+      const { start, end } = await loadDatesFromKV(env);
+      const activities = await fetchAthleteActivities(accessToken, start, end);
       await saveActivitiesToKV(env, user, activities);
       // Nach dem Speichern: Leaderboard neu aggregieren und speichern
       const activitiesByUser = await loadAllActivities(env, users);
@@ -72,6 +73,34 @@ export default {
         }
       });
     }
+
+    if (url.pathname === '/api/challenge-dates') {
+      if (request.method === 'GET') {
+        const { start, end } = await loadDatesFromKV(env);
+        return new Response(JSON.stringify({ start, end }), {
+          headers: {
+            'Content-Type': 'application/json',
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
+          }
+        })
+      }
+      if (request.method === 'POST') {
+        const { start, end } = await request.json();
+        await saveDatesToKV(env, {
+          'start': start,
+          'end': end
+        })
+        return new Response(JSON.stringify({ ok: true }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
+          }
+        })
+      }
+    }
+
     // CORS Preflight für OPTIONS-Requests
     if (request.method === "OPTIONS") {
       return new Response(null, {

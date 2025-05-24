@@ -30,3 +30,18 @@ export async function loadLeaderboardFromKV(env: any): Promise<any | null> {
   const data = await env.ACTIVITIES_KV.get("leaderboard");
   return data ? JSON.parse(data) : null;
 }
+
+export async function saveDatesToKV(env: any, dates: Record<string, string>): Promise<void> {
+  if (!env.ACTIVITIES_KV) throw new Error("KV Namespace ACTIVITIES_KV nicht gebunden");
+  for (const [key, value] of Object.entries(dates)) {
+    const date = key + "_date"
+    await env.ACTIVITIES_KV.put(date, value);
+  }
+}
+
+export async function loadDatesFromKV(env: any): Promise<Record<string, string>> {
+  if (!env.ACTIVITIES_KV) throw new Error("KV Namespace ACTIVITIES_KV nicht gebunden");
+  const start = await env.ACTIVITIES_KV.get("start_date");
+  const end = await env.ACTIVITIES_KV.get("end_date");
+  return { start, end };
+}

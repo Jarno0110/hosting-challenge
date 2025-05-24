@@ -43,6 +43,38 @@
         </div>
     </div>
 
+    <!-- Footer -->
+    <footer class="fixed bottom-0 left-0 w-full bg-gray-800 text-white flex justify-evenly items-center py-3 z-50">
+        <span id="challenge-days"></span>
+        <button id="calendar-btn" aria-label="Challenge Zeitraum ändern">
+            <img src="public/icons/calendar-month.svg" alt="Kalender" class="w-6 h-6" />
+        </button>
+    </footer>
+
+    <!-- Modal -->
+    <div id="calendar-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-900 p-6 rounded-lg w-80">
+            <h3 class="text-lg font-bold mb-4">Challenge Zeitraum ändern</h3>
+            <form id="challenge-form" class="flex flex-col gap-4">
+                <label>
+                    Startdatum:
+                    <input type="date" id="start-date" name="start"
+                        class="mt-1 p-1 rounded bg-gray-800 text-white w-full" />
+                </label>
+                <label>
+                    Enddatum:
+                    <input type="date" id="end-date" name="end"
+                        class="mt-1 p-1 rounded bg-gray-800 text-white w-full" />
+                </label>
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" id="close-modal" class="px-3 py-1 bg-gray-700 rounded">Abbrechen</button>
+                    <button type="submit" id="save-dates"
+                        class="px-3 py-1 bg-sky-800 rounded text-white">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         async function updateAllUsers() {
             const users = ["Jarno", "Haval", "Jean", "Maria", "Cindy"];
@@ -103,8 +135,8 @@
                 div.innerHTML = `
                     <div class="flex flex-col">
                         <div class="flex flex-row gap-2 mb-1">
-                            <img src="./public/icons/laurel-wreath.svg" class="w-6 h-6fill-lime-500"/>
-                            <span class="font-bold text-lime-400">${user.name}${hostLabel}</span>
+                            <img src="./public/icons/laurel-wreath.svg" class="w-6 h-6 fill-lime-500"/>
+                            <span class="font-bold ${isLast ? 'text-lime-400' : 'text-white'}">${user.name}${hostLabel}</span>
                         </div>
                         <p class="text-sm text-gray-300">${user.time} · ${user.count} Aktivitäten · ${formatDistance(user.distance)}</p>
                     </div>
@@ -129,8 +161,51 @@
             btn.classList.add('bg-sky-800')
         };
 
-        // Beim ersten Laden
+        async function loadChallengeDates() {
+            const res = await fetch("https://hosting-challenge-worker.jarno-f.workers.dev/api/challenge-dates");
+            if (!res.ok) return;
+            const { start, end } = await res.json();
+            if (start && end) {
+                const now = new Date();
+                const endDate = new Date(end);
+                const diff = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+                document.getElementById('challenge-days').textContent = diff > 0 ? `${diff} Tage verbleibend` : 'Challenge beendet';
+                // Modal initialwerte setzen
+                document.getElementById('start-date').value = start.slice(0, 10);
+                document.getElementById('end-date').value = end.slice(0, 10);
+            }
+        }
+
+        // Modal öffnen und schließen
+        document.getElementById('calendar-btn').onclick = function () {
+            document.getElementById('calendar-modal').classList.remove('hidden')
+        }
+        document.getElementById('close-modal').onclick = function () {
+            document.getElementById('calendar-modal').classList.add('hidden');
+        };
+
+        // Form submit
+        document.getElementById('challenge-form').onsubmit = async function (e) {
+            e.preventDefault();
+            const start = document.getElementById('start-date').value;
+            const end = document.getElementById('end-date').value;
+            try {
+                const res = await fetch('https://hosting-challenge-worker.jarno-f.workers.dev/api/challenge-dates', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ start, end })
+                });
+                if (!res.ok) throw new Error("Fehler beim Speichern");
+                document.getElementById('calendar-modal').classList.add('hidden');
+                await loadChallengeDates();
+            } catch (err) {
+                alert("Speichern fehlgeschlagen: " + (err && err.message ? err.message : err));
+            }
+        }
+
+        // Initial Laden und aktualisieren
         loadLeaderboard();
+        loadChallengeDates();
         document.getElementById('reload').click();
     </script>
 </body>

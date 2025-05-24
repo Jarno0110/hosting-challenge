@@ -45,7 +45,7 @@
 
     <script>
         async function updateAllUsers() {
-            const users = ["Jarno", "Haval", "Jean", "Maria"];
+            const users = ["Jarno", "Haval", "Jean", "Maria", "Cindy"];
             for (const user of users) {
                 try {
                     await fetch(`https://hosting-challenge-worker.jarno-f.workers.dev/api/update?user=${user.toLowerCase()}`, {

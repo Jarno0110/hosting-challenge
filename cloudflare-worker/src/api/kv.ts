@@ -34,8 +34,13 @@ export async function loadLeaderboardFromKV(env: any): Promise<any | null> {
 export async function saveDatesToKV(env: any, dates: Record<string, string>): Promise<void> {
   if (!env.ACTIVITIES_KV) throw new Error("KV Namespace ACTIVITIES_KV nicht gebunden");
   for (const [key, value] of Object.entries(dates)) {
-    const date = key + "_date"
-    await env.ACTIVITIES_KV.put(date, value);
+    // reformat value to DD-MM-YYYY
+    const dateParts = value.split("-");
+    if (dateParts.length !== 3) {
+      throw new Error(`Invalid date format for ${key}: ${value}`);
+    }
+    const formattedValue = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`; // YYYY-MM-DD
+    await env.ACTIVITIES_KV.put(`${key}_date`, formattedValue);
   }
 }
 

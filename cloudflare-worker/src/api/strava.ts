@@ -43,8 +43,8 @@ export function transformActivity(activity: any): any {
 export async function fetchAthleteActivities(accessToken: string, after?: string, before?: string): Promise<any[]> {
   let url = "https://www.strava.com/api/v3/athlete/activities";
   const params = [];
-  if (before) params.push(`before=${dateToTimestamp(before)}`);
-  if (after) params.push(`after=${dateToTimestamp(after)}`);
+  if (before) params.push(`before=${dateToTimestamp(before, "YYYY-MM-DD")}`);
+  if (after) params.push(`after=${dateToTimestamp(after, "YYYY-MM-DD")}`);
   // Basis-URL mit Query-Params
   if (params.length > 0) {
     url += `?${params.join("&")}`;

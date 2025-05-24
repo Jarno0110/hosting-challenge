@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "build": "wrangler publish"
+    "build": "wrangler deploy"
   },
   "dependencies": {},
   "devDependencies": {

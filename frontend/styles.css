@@ -1,7 +1,8 @@
 /* styles.css */
 
-html, body {
-    overflow-x: hidden;
+html,
+body {
+  overflow-x: hidden;
 }
 
 @media (min-width: 640px) {
@@ -13,14 +14,28 @@ html, body {
 .podium-card {
   transition: transform 0.2s;
 }
+
 .podium-card:hover {
   transform: scale(1.05);
 }
 
 .reverse-spin {
-    animation-direction: reverse !important;
+  animation-direction: reverse !important;
 }
 
 .host-color {
-    color: rgb(16, 199, 16);
+  color: rgb(16, 199, 16);
+}
+
+/* Simulierter Home-Indikator-Strich */
+.home-indicator {
+  position: fixed;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 134px;
+  height: 5px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  z-index: 9999;
 }

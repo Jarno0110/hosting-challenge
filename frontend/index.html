@@ -44,8 +44,8 @@
     </div>
 
     <!-- Footer -->
-    <footer class="fixed bottom-0 left-0 w-full bg-gray-800 text-white flex justify-evenly items-center py-3 z-50">
-        <span id="challenge-days"></span>
+    <footer class="fixed bottom-0 left-0 w-full bg-gray-800 text-white flex justify-evenly items-center py-4 z-50">
+        <span id="challenge-days" class="text-lg font-medium"></span>
         <button id="calendar-btn" aria-label="Challenge Zeitraum ändern">
             <img src="public/icons/calendar-month.svg" alt="Kalender" class="w-6 h-6" />
         </button>
@@ -56,17 +56,17 @@
         <div class="bg-gray-900 p-6 rounded-lg w-80">
             <h3 class="text-lg font-bold mb-4">Challenge Zeitraum ändern</h3>
             <form id="challenge-form" class="flex flex-col gap-4">
-                <label>
-                    Startdatum:
+                <label class="flex flex-row justify-between items-center">
+                    <span class="basis-1/2">Startdatum:</span>
                     <input type="date" id="start-date" name="start"
-                        class="mt-1 p-1 rounded bg-gray-800 text-white w-full" />
+                        class="mt-1 p-1 rounded bg-gray-800 text-white w-full basis-1/2" />
                 </label>
-                <label>
-                    Enddatum:
+                <label class="flex flex-row justify-between items-center">
+                    <span class="basis-1/2">Enddatum:</span>
                     <input type="date" id="end-date" name="end"
-                        class="mt-1 p-1 rounded bg-gray-800 text-white w-full" />
+                        class="mt-1 p-1 rounded bg-gray-800 text-white w-full basis-1/2" />
                 </label>
-                <div class="flex justify-end gap-2 mt-4">
+                <div class="flex justify-evenly gap-2 mt-4">
                     <button type="button" id="close-modal" class="px-3 py-1 bg-gray-700 rounded">Abbrechen</button>
                     <button type="submit" id="save-dates"
                         class="px-3 py-1 bg-sky-800 rounded text-white">Speichern</button>
@@ -74,6 +74,9 @@
             </form>
         </div>
     </div>
+
+    <!-- Simulierter Home-Indikator-Strich -->
+    <!-- <div class="home-indicator"></div> -->
 
     <script>
         async function updateAllUsers() {
